@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light Mode */
+    --color-bg-dark: 250 249 246; /* #faf9f6 */
+    --color-bg-charcoal: 255 255 255; /* #ffffff */
+    --color-text-gold: 212 175 55; /* #d4af37 (Gold works in both) */
+    --color-text-lightGold: 197 160 48; /* Darker gold for light mode hovers */
+    --color-text-white: 10 10 10; /* #0a0a0a (Dark text) */
+    --color-text-gray: 110 110 110; 
+    --color-border: 0 0 0; /* Black for borders */
+  }
+
+  .dark {
+    /* Dark Mode */
+    --color-bg-dark: 10 10 10; /* #0a0a0a */
+    --color-bg-charcoal: 28 28 28; /* #1c1c1c */
+    --color-text-gold: 212 175 55; /* #d4af37 */
+    --color-text-lightGold: 243 229 171; /* #f3e5ab */
+    --color-text-white: 255 255 255; /* #ffffff */
+    --color-text-gray: 136 136 136; /* #888888 */
+    --color-border: 255 255 255; /* White for borders */
+  }
+
+  body {
+    @apply bg-luxury-dark text-luxury-white font-sans antialiased overflow-x-hidden transition-colors duration-300;
+  }
+
+  ::selection {
+    @apply bg-luxury-gold text-luxury-dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glass {
+    @apply bg-luxury-charcoal/60 backdrop-blur-md border border-luxury-border/10 shadow-glass;
+  }
+
+  .shimmer-effect {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-effect::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(255, 255, 255, 0.05),
+      transparent
+    );
+    transform: skewX(-20deg);
+    animation: shimmer 3s infinite;
+  }
+
+  @keyframes shimmer {
+    100% {
+      left: 200%;
+    }
+  }
+}
