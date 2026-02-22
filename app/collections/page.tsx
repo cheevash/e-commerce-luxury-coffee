@@ -1,35 +1,13 @@
-import { supabase } from "@/lib/supabase";
 import ProductCard from "@/components/ProductCard";
-
-export const revalidate = 60; // ISR revalidation every 60s
+import { getProducts } from "@/lib/products";
 
 export const metadata = {
   title: "Shop All Collections | Aura Luxury Coffee",
   description: "Explore our entire collection of meticulously sourced luxury coffee beans.",
 };
 
-async function getAllProducts() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder-url.supabase.co";
-  if (url === "https://placeholder-url.supabase.co") return [];
-  try {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  } catch (error: any) {
-    // Only log actual fetch errors, ignore missing config errors
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-       console.error("Failed to fetch products:", error?.message || error);
-    }
-    return [];
-  }
-}
-
-export default async function CollectionsPage() {
-  const products = await getAllProducts();
+export default function CollectionsPage() {
+  const products = getProducts();
 
   return (
     <div className="min-h-screen pt-24 pb-32">
@@ -44,18 +22,11 @@ export default async function CollectionsPage() {
         </div>
 
         {/* Grid */}
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {products.map((product, index) => (
-              <ProductCard key={product.id} product={product} index={index} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-32 border border-luxury-border/5 rounded-2xl glass">
-            <p className="text-luxury-gray tracking-widest uppercase mb-4">No products found</p>
-            <p className="font-light text-sm text-luxury-gray/70">Please check back later as we replenish our exclusive reserves.</p>
-          </div>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {products.map((product, index) => (
+            <ProductCard key={product.id} product={product} index={index} />
+          ))}
+        </div>
       </div>
     </div>
   );

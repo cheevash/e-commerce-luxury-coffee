@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { getProductById, getRecommendations, getProducts } from "@/lib/products";
 import Carousel from "@/components/Carousel";
 import RecommendationSection from "@/components/RecommendationSection";
 import ProductDetailsClient from "./ProductDetailsClient";
-import type { Metadata } from 'next';
-
-export const revalidate = 60;
+import type { Metadata } from "next";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -13,28 +11,18 @@ interface PageProps {
 
 // Generate static params for static export
 export async function generateStaticParams() {
-  const { data: products } = await supabase
-    .from("products")
-    .select("id");
-    
-  if (!products) return [];
-  
-  return products.map((product) => ({
-    id: product.id.toString(),
+  return getProducts().map((product) => ({
+    id: product.id,
   }));
 }
 
 // Generate Dynamic Metadata
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const { data: product } = await supabase
-    .from("products")
-    .select("name, description, image_url")
-    .eq("id", id)
-    .single();
+  const product = getProductById(id);
 
   if (!product) {
-    return { title: 'Product Not Found | Aura Coffee' };
+    return { title: "Product Not Found | Aura Coffee" };
   }
 
   return {
@@ -48,53 +36,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-async function getProduct(id: string) {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error || !data) return null;
-  return data;
-}
-
-async function getRecommendations(productId: string) {
-  // Try to fetch specific recommendations for this product
-  let { data, error } = await supabase
-    .from("recommendations")
-    .select(`
-      recommended_product_id,
-      products:recommended_product_id (*)
-    `)
-    .eq("product_id", productId);
-
-  let recProducts = data?.map((d: any) => d.products) || [];
-
-  // If no explicit recommendations, fetch fallback products (excluding current)
-  if (recProducts.length === 0) {
-    const { data: fallbackData } = await supabase
-      .from("products")
-      .select("*")
-      .neq("id", productId)
-      .limit(4);
-    recProducts = fallbackData || [];
-  }
-
-  return recProducts;
-}
-
 export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
-  const product = await getProduct(id);
+  const product = getProductById(id);
 
   if (!product) {
     notFound();
   }
 
-  const recommendations = await getRecommendations(product.id);
-  // Simulating multiple images if only one is provided in the DB
-  const images = [product.image_url, "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=800", "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=800"];
+  const recommendations = getRecommendations(product.id, 4);
+
+  // Multiple product images for the carousel
+  const images = [
+    product.image_url,
+    "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=800",
+    "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=800",
+  ];
 
   return (
     <div className="min-h-screen pb-24">
